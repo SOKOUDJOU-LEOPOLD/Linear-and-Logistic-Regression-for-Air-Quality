@@ -42,6 +42,9 @@ class DataProcessor:
         train_data = pd.read_csv(f"{self.data_root}/{train_data_file_name}")
         test_data = pd.read_csv(f"{self.data_root}/{test_data_file_name}")
         
+        print(train_data.head())
+        print(train_data.shape())
+
         return (train_data, test_data)
         
         
@@ -56,6 +59,7 @@ class DataProcessor:
             Number of missing values
         """
         # TODO: Implement missing value check
+        return data.isnull().sum().sum()
         
     def clean_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """Remove rows with missing values.
