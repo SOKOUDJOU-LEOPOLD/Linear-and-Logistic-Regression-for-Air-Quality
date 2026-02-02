@@ -83,6 +83,10 @@ class DataProcessor:
             Tuple of feature matrix X and label vector y
         """
         # TODO: Implement feature/label extraction
+        # feature matrix will be X and Label Vector will be Y
+        X = data.drop(columns=["PT08.S1(CO)"])
+        Y = data["PT08.S1(CO)"]
+        return (X, Y)
     
 class LinearRegression:
     def __init__(self):
