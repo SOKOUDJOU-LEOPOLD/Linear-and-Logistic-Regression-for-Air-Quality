@@ -87,7 +87,20 @@ class DataProcessor:
         X = data.drop(columns=["PT08.S1(CO)"])
         Y = data["PT08.S1(CO)"]
         return (X, Y)
-    
+
+class ExploratoryDataAnalysis:
+    def plotHistograms(data:pd.DataFrame):
+        plt.figure(figsize=(15, 20))
+        for i, col in enumerate(data.columns):
+            plt.subplot(3,4,i+1)
+            plt.hist(data[col], bins = 25)
+            plt.title(col)
+            plt.xlabel("Value")
+            plt.ylabel("Frequency")
+        
+        plt.tight_layout()
+        plt.show()
+        
 class LinearRegression:
     def __init__(self):
         """Initialize linear regression model.
