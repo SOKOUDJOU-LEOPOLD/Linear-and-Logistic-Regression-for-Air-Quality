@@ -37,6 +37,12 @@ class DataProcessor:
             Tuple containing training and test dataframes
         """
         # TODO: Implement data loading
+        train_data_file_name = "hw1_data_train.csv"
+        test_data_file_name = "hw1_data_test.csv"
+        train_data = pd.read_csv(f"{self.data_root}/{train_data_file_name}")
+        test_data = pd.read_csv(f"{self.data_root}/{test_data_file_name}")
+        
+        return (train_data, test_data)
         
         
         
