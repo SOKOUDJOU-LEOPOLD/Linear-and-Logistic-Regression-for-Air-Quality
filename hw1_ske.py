@@ -100,7 +100,15 @@ class ExploratoryDataAnalysis:
         
         plt.tight_layout()
         plt.show()
-        
+
+    def scatterPlot(data: pd.DataFrame, x_feature:str, y_feature: str):
+        plt.figure(figsize=(5,5))
+        plt.scatter(data[x_feature],data[y_feature], alpha = 0.5)
+        plt.xlabel(x_feature)
+        plt.ylabel(y_feature)
+        plt.title(f"Scatter Plot of {x_feature} VS {y_feature}")
+        plt.show()
+
 class LinearRegression:
     def __init__(self):
         """Initialize linear regression model.
