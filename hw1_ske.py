@@ -71,6 +71,7 @@ class DataProcessor:
             Cleaned dataframe
         """
         # TODO: Implement data cleaning
+        return data.dropna()
         
     def extract_features_labels(self, data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
         """Extract features and labels from dataframe, convert to numpy arrays.
