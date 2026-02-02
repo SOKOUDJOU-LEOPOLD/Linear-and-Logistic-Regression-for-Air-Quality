@@ -101,6 +101,7 @@ class ExploratoryDataAnalysis:
         plt.tight_layout()
         plt.show()
 
+    # Choose T and AH
     def scatterPlot(data: pd.DataFrame, x_feature:str, y_feature: str):
         plt.figure(figsize=(5,5))
         plt.scatter(data[x_feature],data[y_feature], alpha = 0.5)
@@ -108,6 +109,23 @@ class ExploratoryDataAnalysis:
         plt.ylabel(y_feature)
         plt.title(f"Scatter Plot of {x_feature} VS {y_feature}")
         plt.show()
+
+    def plotCorrelationHeatmap(data: pd.DataFrame):
+        corr_matrix = data.corr(method="pearson")
+        
+        plt.figure(figsize=(11, 9))
+        sns.heatmap(
+            corr_matrix,
+            annot=True,
+            fmt=".2f",
+            cmap="coolwarm",
+            square=True
+        )
+        plt.title("Pearson Correlation Heatmap")
+        plt.show()
+        
+        return corr_matrix
+
 
 class LinearRegression:
     def __init__(self):
