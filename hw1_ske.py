@@ -217,6 +217,7 @@ class LinearRegression:
             Metric value
         """
         # TODO: Implement RMSE calculation
+        return np.sqrt(self.criterion(y_true, y_pred))
 
 class LogisticRegression:
     def __init__(self):
