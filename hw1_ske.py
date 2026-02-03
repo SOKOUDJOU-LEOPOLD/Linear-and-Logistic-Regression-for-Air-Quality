@@ -138,8 +138,8 @@ class LinearRegression:
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = None
-        self.max_iter = None
+        self.learning_rate = 0.001
+        self.max_iter = 1000
         
     def fit(self, X: np.ndarray, y: np.ndarray) -> list[float]:
         """Train linear regression model.
@@ -152,6 +152,7 @@ class LinearRegression:
             List of loss values
         """
         # TODO: Implement linear regression training
+
     
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Make predictions with trained model.
