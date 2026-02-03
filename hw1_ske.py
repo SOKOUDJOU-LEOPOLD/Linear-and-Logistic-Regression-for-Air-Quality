@@ -204,6 +204,7 @@ class LinearRegression:
             Loss value
         """
         # TODO: Implement loss function
+        return np.mean((y_true - y_pred) ** 2)
 
     def metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calculate RMSE.
@@ -216,7 +217,6 @@ class LinearRegression:
             Metric value
         """
         # TODO: Implement RMSE calculation
-        return np.mean((y_true - y_pred) ** 2)
 
 class LogisticRegression:
     def __init__(self):
