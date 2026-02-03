@@ -333,9 +333,13 @@ class LogisticRegression:
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = None
-        self.max_iter = None
-        
+        self.learning_rate = 0.001
+        self.max_iter = 2000
+        self.l2_lambda = 0.0
+
+    def sigmoid(self, z: np.ndarray) -> np.ndarray:
+        return 1 / (1 + np.exp(-z))
+    
     def fit(self, X: np.ndarray, y: np.ndarray) -> list[float]:
         """Train logistic regression model with normalization and L2 regularization.
         
@@ -347,6 +351,38 @@ class LogisticRegression:
             List of loss values
         """
         # TODO: Implement logistic regression training
+        self.mean = X.mean(axis=0)
+        self.std = X.std(axis=0)
+        X = (X - self.mean) / self.std
+
+        y = self.label_binarize(y)
+
+        n_samples, n_features = X.shape
+
+        self.weights = np.zeros(n_features)
+        self.bias = 0.0
+
+        losses = []
+
+        for _ in range(self.max_iter):
+
+            # Forward
+            z = X @ self.weights + self.bias
+            y_pred = self.sigmoid(z)
+
+            # Loss
+            loss = self.criterion(y, y_pred)
+            losses.append(loss)
+
+            # Gradients
+            dw = (X.T @ (y_pred - y)) / n_samples + self.l2_lambda * self.weights
+            db = np.mean(y_pred - y)
+
+            # Update
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+        return losses
     
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Calculate prediction probabilities using normalized features.
@@ -358,6 +394,9 @@ class LogisticRegression:
             Prediction probabilities
         """
         # TODO: Implement logistic regression prediction probabilities
+        X = (X - self.mean) / self.std
+        z = X @ self.weights + self.bias
+        return self.sigmoid(z)
     
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Make predictions with trained model.
@@ -369,7 +408,10 @@ class LogisticRegression:
             Predicted values
         """
         # TODO: Implement logistic regression prediction
+        probs = self.predict_proba(X)
+        return (probs >= 0.5).astype(int)
 
+    # Loss Function
     def criterion(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calculate BCE loss.
         
@@ -381,6 +423,11 @@ class LogisticRegression:
             Loss value
         """
         # TODO: Implement loss function
+        eps = 1e-9
+        return -np.mean(
+            y_true * np.log(y_pred + eps) +
+            (1 - y_true) * np.log(1 - y_pred + eps)
+        )
     
     def F1_score(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calculate F1 score with handling of edge cases.
@@ -394,6 +441,18 @@ class LogisticRegression:
         """
         # TODO: Implement F1 score calculation
 
+        tp = np.sum((y_true == 1) & (y_pred == 1))
+        fp = np.sum((y_true == 0) & (y_pred == 1))
+        fn = np.sum((y_true == 1) & (y_pred == 0))
+
+        if tp == 0:
+            return 0.0
+
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+
+        return 2 * precision * recall / (precision + recall)
+
     def label_binarize(self, y: np.ndarray) -> np.ndarray:
         """Binarize labels for binary classification.
         
@@ -404,6 +463,7 @@ class LogisticRegression:
             Binarized labels
         """
         # TODO: Implement label binarization
+        return (y > 1000).astype(int)
 
     def get_auroc(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calculate AUROC score.
@@ -416,6 +476,28 @@ class LogisticRegression:
             AUROC score (between 0 and 1)
         """
         # TODO: Implement AUROC calculation
+        thresholds = np.linspace(0, 1, 200)
+        tpr_list = []
+        fpr_list = []
+
+        for t in thresholds:
+            preds = (y_pred >= t).astype(int)
+
+            tp = np.sum((y_true == 1) & (preds == 1))
+            fp = np.sum((y_true == 0) & (preds == 1))
+            fn = np.sum((y_true == 1) & (preds == 0))
+            tn = np.sum((y_true == 0) & (preds == 0))
+
+            tpr = tp / (tp + fn + 1e-9)
+            fpr = fp / (fp + tn + 1e-9)
+
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
+
+        # trapezoidal rule
+        order = np.argsort(fpr_list)
+        return np.trapz(np.array(tpr_list)[order], np.array(fpr_list)[order])
+
 
     def metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calculate AUROC.
@@ -428,6 +510,8 @@ class LogisticRegression:
             AUROC score
         """
         # TODO: Implement AUROC calculation
+        y_true = self.label_binarize(y_true)
+        return self.get_auroc(y_true, y_pred)
 
 class ModelEvaluator:
     def __init__(self, n_splits: int = 5, random_state: int = 42):
