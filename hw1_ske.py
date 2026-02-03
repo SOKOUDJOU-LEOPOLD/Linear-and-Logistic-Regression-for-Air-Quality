@@ -216,6 +216,7 @@ class LinearRegression:
             Metric value
         """
         # TODO: Implement RMSE calculation
+        return np.mean((y_true - y_pred) ** 2)
 
 class LogisticRegression:
     def __init__(self):
