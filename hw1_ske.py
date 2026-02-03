@@ -180,6 +180,13 @@ class LinearRegression:
         
         return losses        
 
+    def plotLoss(self, losses:np.ndarray):
+        plt.plot(losses)
+        plt.xlabel("Iterations")
+        plt.ylabel("MSE Loss")
+        plt.title("Training Loss vs Iterations")
+        plt.show()
+
     
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Make predictions with trained model.
