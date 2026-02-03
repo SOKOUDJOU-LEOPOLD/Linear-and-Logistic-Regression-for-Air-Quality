@@ -152,6 +152,33 @@ class LinearRegression:
             List of loss values
         """
         # TODO: Implement linear regression training
+        n_samples, n_features = X.shape
+        
+        # Initialize parameters
+        self.weights = np.zeros(n_features)
+        self.bias = 0.0
+        
+        # store losse for each iteration
+        losses = []
+        
+        # training
+        for i in range(self.max_iter):
+            # predicted value 
+            y_pred = X @ self.weights + self.bias
+            
+            # loss value
+            loss = self.criterion(y, y_pred)
+            losses.append(loss)
+            
+            # gradients
+            dw = (2 / n_samples) * X.T @ (y_pred - y)
+            db = (2 / n_samples) * np.sum(y_pred - y)
+            
+            # Update parameters
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+        
+        return losses        
 
     
     def predict(self, X: np.ndarray) -> np.ndarray:
