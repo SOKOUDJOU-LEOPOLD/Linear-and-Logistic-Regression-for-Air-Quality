@@ -226,6 +226,103 @@ class LinearRegression:
         # TODO: Implement RMSE calculation
         return np.sqrt(self.criterion(y_true, y_pred))
 
+
+def main_LinearRegression():
+    # ===============================
+    # Step 1 — Load data
+    # ===============================
+    processor = DataProcessor("./data")   # change path if needed
+    train_df, test_df = processor.load_data()
+
+    print("Train shape:", train_df.shape)
+    print("Test shape:", test_df.shape)
+
+
+    # ===============================
+    # Step 2 — Check missing values
+    # ===============================
+    missing_train = processor.check_missing_values(train_df)
+    missing_test = processor.check_missing_values(test_df)
+
+    print("Missing values (train):", missing_train)
+    print("Missing values (test):", missing_test)
+
+
+    # ===============================
+    # Step 3 — Clean data
+    # ===============================
+    train_df = processor.clean_data(train_df)
+    test_df = processor.clean_data(test_df)
+
+
+    # ===============================
+    # Step 4 — Extract features/labels
+    # ===============================
+    X_train, y_train = processor.extract_features_labels(train_df)
+    X_test, y_test = processor.extract_features_labels(test_df)
+
+
+    # ===============================
+    # Step 5 — Normalize features (VERY IMPORTANT)
+    # ===============================
+    mean = X_train.mean(axis=0)
+    std = X_train.std(axis=0)
+
+    X_train = (X_train - mean) / std
+    X_test = (X_test - mean) / std   # use TRAIN stats only
+
+
+    # ===============================
+    # Step 6 — Hyperparameter tuning loop
+    # ===============================
+    learning_rates = [0.0005, 0.001, 0.005]
+    iterations_list = [1000, 3000, 5000]
+
+    best_rmse = float("inf")
+    best_model = None
+
+    for lr in learning_rates:
+        for iters in iterations_list:
+
+            print(f"\nTraining with lr={lr}, iters={iters}")
+
+            model = LinearRegression(learning_rate=lr, max_iter=iters)
+            losses = model.fit(X_train, y_train)
+
+            preds = model.predict(X_test)
+            rmse = model.metric(y_test, preds)
+
+            print("RMSE:", rmse)
+
+            if rmse < best_rmse:
+                best_rmse = rmse
+                best_model = model
+                best_losses = losses
+
+
+    print("\n===============================")
+    print("BEST RMSE:", best_rmse)
+    print("===============================")
+
+
+    # ===============================
+    # Step 7 — Plot final loss curve
+    # ===============================
+    plt.figure(figsize=(6, 4))
+    plt.plot(best_losses)
+    plt.xlabel("Iterations")
+    plt.ylabel("MSE Loss")
+    plt.title("Training Loss Curve")
+    plt.show()
+
+
+    # ===============================
+    # Step 8 — Final predictions
+    # ===============================
+    final_preds = best_model.predict(X_test)
+    print("First 10 predictions:", final_preds[:10])
+
+
 class LogisticRegression:
     def __init__(self):
         """Initialize logistic regression model.
