@@ -42,9 +42,6 @@ class DataProcessor:
         train_data = pd.read_csv(f"{self.data_root}/{train_data_file_name}")
         test_data = pd.read_csv(f"{self.data_root}/{test_data_file_name}")
         
-        print(train_data.head())
-        print(train_data.shape())
-
         return (train_data, test_data)
         
         
@@ -539,4 +536,34 @@ class ModelEvaluator:
         # TODO: Implement cross-validation
 
 if __name__ == "__main__":
-    print("Hello World!")
+    
+    # 3.1  Data Processing
+    
+    # load data
+    dataProcessor = DataProcessor("./")
+    train_data, test_data = dataProcessor.load_data()
+    print("Head of train data: \n", train_data.head())
+    print("Shape of train data: ", train_data.shape)
+    print("Head of test data: \n", test_data.head())
+    print("Shape of test data: ", test_data.shape)
+    print()
+
+    # Missing data
+    train_missing_data = dataProcessor.check_missing_values(train_data)
+    test_missing_data = dataProcessor.check_missing_values(test_data)
+    print("Number of Missing data in train data: ", train_missing_data)
+    print("Number of Missing data in test data: ", test_missing_data)
+    print()
+
+    # drop missing data
+    train_clean_data = dataProcessor.clean_data(train_data)
+    test_clean_data = dataProcessor.clean_data(test_data)
+    print("Shape of train clean data: ", train_clean_data.shape)
+    print("Shape of test clean data: ", test_clean_data.shape)
+    print()
+    
+    # Extract Features and label
+    X, Y = dataProcessor.extract_features_labels(train_clean_data)
+    print("train data features and label: ")
+    print("features: \n", X)
+    print("label: \n", Y)
