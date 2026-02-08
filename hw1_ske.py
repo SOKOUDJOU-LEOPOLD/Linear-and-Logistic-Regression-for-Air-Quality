@@ -662,6 +662,8 @@ if __name__ == "__main__":
     test_predictions_tuned = best_model.predict(X_test_norm)
     print("\nTuned Test predictions shape:", test_predictions_tuned.shape)
 
+    # save the predictions of the tuned trained model
+    # np.savetxt("linear_predictions_tuned.csv", test_predictions, delimiter=",")
 
 
     
