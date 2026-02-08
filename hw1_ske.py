@@ -594,5 +594,8 @@ if __name__ == "__main__":
     print("Features Description:\n", train_clean_data.describe())
 
     # Picked T and AH and create a scatter plot to illustrate the correlation between them
+    # ExploratoryDataAnalysis().scatterPlot(test_clean_data, "T", "RH")
 
+    # Compute the Pearson’s correlation between all pairs of variables 1-12
+    ExploratoryDataAnalysis().plotCorrelationHeatmap(train_clean_data)
 
