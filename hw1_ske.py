@@ -236,7 +236,36 @@ class LinearRegression:
         """
         # TODO: Implement RMSE calculation
         return np.sqrt(self.criterion(y_true, y_pred))
+    
+    # def training_loop(learning_rate = self.learning_rate, max_iter = self.max_iter):
+    #     for _ in 
+    
+    def tuning_loop(learning_rates, iterations_list):            
+        best_rmse = float("inf")
+        best_model = None
+        best_loss = None
 
+        for lr in learning_rates:
+            for iters in iterations_list:
+
+                print(f"\nTraining with lr={lr}, iterations={iters}")
+
+                model = LinearRegression(lr=lr, n_iters=iters)
+
+                losses = model.fit(X_train_norm, Y_train)
+
+                preds = model.predict(X_train_norm)
+
+                rmse = np.sqrt(np.mean((Y_train - preds) ** 2))
+
+                print("RMSE:", rmse)
+
+                if rmse < best_rmse:
+                    best_rmse = rmse
+                    best_model = model
+                    best_loss = losses
+        
+        return (best_rmse, best_model, best_loss)
 
 def main_LinearRegression():
     # ===============================
@@ -597,5 +626,25 @@ if __name__ == "__main__":
     # ExploratoryDataAnalysis().scatterPlot(test_clean_data, "T", "RH")
 
     # Compute the Pearson’s correlation between all pairs of variables 1-12
-    ExploratoryDataAnalysis().plotCorrelationHeatmap(train_clean_data)
+    # ExploratoryDataAnalysis().plotCorrelationHeatmap(train_clean_data)
+
+    # 3.3 Linear Regression
+
+    # convert pd.DataFrames to numpy.Array for math operations
+    X_train_norm = X_train_norm.values
+    Y_train = Y_train.values
+    X_test_norm = X_test_norm.values
+
+    # Construct main training loop, record loss, plot loss against iteration
+    linear_model = LinearRegression()
+    losses = linear_model.fit(X_train_norm, Y_train)
+    linear_model.plotLoss(losses)
+
+    # Make prediction using trained model
+    
+
+    
+
+
+
 
