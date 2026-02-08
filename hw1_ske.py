@@ -68,6 +68,9 @@ class DataProcessor:
             Cleaned dataframe
         """
         # TODO: Implement data cleaning
+        # 1. Replace sensor missing flag -200
+        data = data.replace(-200, np.nan)
+        # drop the missing data
         return data.dropna()
         
     def extract_features_labels(self, data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
