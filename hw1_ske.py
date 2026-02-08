@@ -86,20 +86,20 @@ class DataProcessor:
         return (X, Y)
 
 class ExploratoryDataAnalysis:
-    def plotHistograms(data:pd.DataFrame):
-        plt.figure(figsize=(15, 20))
+    def plotHistograms(self, data:pd.DataFrame):
+        plt.figure(figsize=(15, 8))
         for i, col in enumerate(data.columns):
             plt.subplot(3,4,i+1)
             plt.hist(data[col], bins = 25)
             plt.title(col)
             plt.xlabel("Value")
             plt.ylabel("Frequency")
-        
+
         plt.tight_layout()
         plt.show()
 
     # Choose T and AH
-    def scatterPlot(data: pd.DataFrame, x_feature:str, y_feature: str):
+    def scatterPlot(self, data: pd.DataFrame, x_feature:str, y_feature: str):
         plt.figure(figsize=(5,5))
         plt.scatter(data[x_feature],data[y_feature], alpha = 0.5)
         plt.xlabel(x_feature)
@@ -107,7 +107,7 @@ class ExploratoryDataAnalysis:
         plt.title(f"Scatter Plot of {x_feature} VS {y_feature}")
         plt.show()
 
-    def plotCorrelationHeatmap(data: pd.DataFrame):
+    def plotCorrelationHeatmap(self, data: pd.DataFrame):
         corr_matrix = data.corr(method="pearson")
         
         plt.figure(figsize=(11, 9))
@@ -567,3 +567,14 @@ if __name__ == "__main__":
     print("train data features and label: ")
     print("features: \n", X)
     print("label: \n", Y)
+
+    # 3.2 Exploratory Data Analysis
+    
+    # Plot the histograms of all the features in the data 
+    # ExploratoryDataAnalysis().plotHistograms(train_clean_data)
+    # get the mean, std, min, max for each features
+    print("Features Description:\n", train_clean_data.describe())
+
+    # Picked T and AH and create a scatter plot to illustrate the correlation between them
+
+
