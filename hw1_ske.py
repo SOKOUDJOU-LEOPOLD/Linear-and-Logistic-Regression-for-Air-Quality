@@ -87,6 +87,17 @@ class DataProcessor:
         X = data.drop(columns=["PT08.S1(CO)"])
         Y = data["PT08.S1(CO)"]
         return (X, Y)
+    
+    # Normalize Data
+    def normalize(self, X_train, X_test):
+        mean = X_train.mean(axis=0)
+        std = X_train.std(axis=0)
+
+        X_train = (X_train - mean) / std
+        X_test = (X_test - mean) / std
+
+        return X_train, X_test
+    
 
 class ExploratoryDataAnalysis:
     def plotHistograms(self, data:pd.DataFrame):
@@ -565,17 +576,21 @@ if __name__ == "__main__":
     print("Shape of test clean data: ", test_clean_data.shape)
     print()
     
-    # Extract Features and label
-    X, Y = dataProcessor.extract_features_labels(train_clean_data)
+    # Extract Features and label for tain data but Features only for test data since it does not have a label
+    X_train, Y_train = dataProcessor.extract_features_labels(train_clean_data)
+    X_test = test_clean_data
     print("train data features and label: ")
-    print("features: \n", X)
-    print("label: \n", Y)
+    print("features: \n", X_train)
+    print("label: \n", Y_train)
+
+    #Normalize data
+    X_train_norm, X_test_norm = dataProcessor.normalize(X_train, X_test)
 
     # 3.2 Exploratory Data Analysis
-    
+
     # Plot the histograms of all the features in the data 
     # ExploratoryDataAnalysis().plotHistograms(train_clean_data)
-    # get the mean, std, min, max for each features
+    # get the mean, std, min, max for each features. Describing clean data
     print("Features Description:\n", train_clean_data.describe())
 
     # Picked T and AH and create a scatter plot to illustrate the correlation between them
