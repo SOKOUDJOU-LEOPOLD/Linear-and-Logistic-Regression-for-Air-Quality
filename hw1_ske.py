@@ -638,12 +638,12 @@ if __name__ == "__main__":
 
     # Construct main training loop without tuning hyperparameters, record loss, plot loss against iteration 
     linear_model = LinearRegression()
-    losses = linear_model.fit(X_train_norm, Y_train)
-    linear_model.plotLoss(losses)
+    # losses = linear_model.fit(X_train_norm, Y_train)
+    # linear_model.plotLoss(losses)
 
     # Make prediction using trained model
-    test_predictions = linear_model.predict(X_test_norm)
-    print("\nUnTuned Test predictions shape:", test_predictions.shape)
+    # test_predictions = linear_model.predict(X_test_norm)
+    # print("\nUnTuned Test predictions shape:", test_predictions.shape)
 
     # save the predictions of the untuned trained model
     # np.savetxt("linear_predictions_untuned.csv", test_predictions, delimiter=",")
@@ -652,18 +652,22 @@ if __name__ == "__main__":
     # define hyperparameters tuning candidates
     learning_rates = [0.001, 0.01]
     iterations_list = [1000, 2000]
-    best_rmse, best_model, best_loss = LinearRegression.tuning_loop(learning_rates, iterations_list)
-    print("Best Model: lr = ", best_model.learning_rate, ", iterations = ", best_model.max_iter)
+    # best_rmse, best_model, best_loss = LinearRegression.tuning_loop(learning_rates, iterations_list)
+    # print("Best Model: lr = ", best_model.learning_rate, ", iterations = ", best_model.max_iter)
 
     # Plot training loss for tuned trained model
-    best_model.plotLoss(best_loss)
+    # best_model.plotLoss(best_loss)
 
     # Make prediction using tuned trained model
-    test_predictions_tuned = best_model.predict(X_test_norm)
-    print("\nTuned Test predictions shape:", test_predictions_tuned.shape)
+    # test_predictions_tuned = best_model.predict(X_test_norm)
+    # print("\nTuned Test predictions shape:", test_predictions_tuned.shape)
 
     # save the predictions of the tuned trained model
     # np.savetxt("linear_predictions_tuned.csv", test_predictions, delimiter=",")
+
+
+    # 3.4 Logistic Regression
+
 
 
     
