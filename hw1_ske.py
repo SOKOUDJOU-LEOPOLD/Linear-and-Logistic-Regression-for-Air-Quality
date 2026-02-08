@@ -139,7 +139,7 @@ class ExploratoryDataAnalysis:
 
 
 class LinearRegression:
-    def __init__(self):
+    def __init__(self, learning_rate: float = 0.001, max_iter: int = 1000):
         """Initialize linear regression model.
         
         Args:
@@ -149,8 +149,8 @@ class LinearRegression:
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.001
-        self.max_iter = 1000
+        self.learning_rate = learning_rate
+        self.max_iter = max_iter
         
     def fit(self, X: np.ndarray, y: np.ndarray) -> list[float]:
         """Train linear regression model.
