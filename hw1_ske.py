@@ -635,13 +635,18 @@ if __name__ == "__main__":
     Y_train = Y_train.values
     X_test_norm = X_test_norm.values
 
-    # Construct main training loop, record loss, plot loss against iteration
+    # Construct main training loop without tuning hyperparameters, record loss, plot loss against iteration 
     linear_model = LinearRegression()
     losses = linear_model.fit(X_train_norm, Y_train)
     linear_model.plotLoss(losses)
 
     # Make prediction using trained model
-    
+    test_predictions = linear_model.predict(X_test_norm)
+    print("\nTest predictions shape:", test_predictions.shape)
+
+    # save the predictions of the untuned trained model
+    np.savetxt("linear_predictions_untuned.csv", test_predictions, delimiter=",")
+
 
     
 
