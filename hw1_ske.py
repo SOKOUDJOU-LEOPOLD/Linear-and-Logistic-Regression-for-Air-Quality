@@ -269,101 +269,6 @@ class LinearRegression:
         
         return (best_rmse, best_model, best_loss)
 
-def main_LinearRegression():
-    # ===============================
-    # Step 1 — Load data
-    # ===============================
-    processor = DataProcessor("./data")   # change path if needed
-    train_df, test_df = processor.load_data()
-
-    print("Train shape:", train_df.shape)
-    print("Test shape:", test_df.shape)
-
-
-    # ===============================
-    # Step 2 — Check missing values
-    # ===============================
-    missing_train = processor.check_missing_values(train_df)
-    missing_test = processor.check_missing_values(test_df)
-
-    print("Missing values (train):", missing_train)
-    print("Missing values (test):", missing_test)
-
-
-    # ===============================
-    # Step 3 — Clean data
-    # ===============================
-    train_df = processor.clean_data(train_df)
-    test_df = processor.clean_data(test_df)
-
-
-    # ===============================
-    # Step 4 — Extract features/labels
-    # ===============================
-    X_train, y_train = processor.extract_features_labels(train_df)
-    X_test, y_test = processor.extract_features_labels(test_df)
-
-
-    # ===============================
-    # Step 5 — Normalize features (VERY IMPORTANT)
-    # ===============================
-    mean = X_train.mean(axis=0)
-    std = X_train.std(axis=0)
-
-    X_train = (X_train - mean) / std
-    X_test = (X_test - mean) / std   # use TRAIN stats only
-
-
-    # ===============================
-    # Step 6 — Hyperparameter tuning loop
-    # ===============================
-    learning_rates = [0.0005, 0.001, 0.005]
-    iterations_list = [1000, 3000, 5000]
-
-    best_rmse = float("inf")
-    best_model = None
-
-    for lr in learning_rates:
-        for iters in iterations_list:
-
-            print(f"\nTraining with lr={lr}, iters={iters}")
-
-            model = LinearRegression(learning_rate=lr, max_iter=iters)
-            losses = model.fit(X_train, y_train)
-
-            preds = model.predict(X_test)
-            rmse = model.metric(y_test, preds)
-
-            print("RMSE:", rmse)
-
-            if rmse < best_rmse:
-                best_rmse = rmse
-                best_model = model
-                best_losses = losses
-
-
-    print("\n===============================")
-    print("BEST RMSE:", best_rmse)
-    print("===============================")
-
-
-    # ===============================
-    # Step 7 — Plot final loss curve
-    # ===============================
-    plt.figure(figsize=(6, 4))
-    plt.plot(best_losses)
-    plt.xlabel("Iterations")
-    plt.ylabel("MSE Loss")
-    plt.title("Training Loss Curve")
-    plt.show()
-
-
-    # ===============================
-    # Step 8 — Final predictions
-    # ===============================
-    final_preds = best_model.predict(X_test)
-    print("First 10 predictions:", final_preds[:10])
-
 
 class LogisticRegression:
     def __init__(self):
@@ -393,9 +298,6 @@ class LogisticRegression:
             List of loss values
         """
         # TODO: Implement logistic regression training
-        self.mean = X.mean(axis=0)
-        self.std = X.std(axis=0)
-        X = (X - self.mean) / self.std
 
         y = self.label_binarize(y)
 
@@ -436,7 +338,6 @@ class LogisticRegression:
             Prediction probabilities
         """
         # TODO: Implement logistic regression prediction probabilities
-        X = (X - self.mean) / self.std
         z = X @ self.weights + self.bias
         return self.sigmoid(z)
     
@@ -538,7 +439,7 @@ class LogisticRegression:
 
         # trapezoidal rule
         order = np.argsort(fpr_list)
-        return np.trapz(np.array(tpr_list)[order], np.array(fpr_list)[order])
+        return np.trapezoid(np.array(tpr_list)[order], np.array(fpr_list)[order])
 
 
     def metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -561,6 +462,72 @@ class LogisticRegression:
         plt.ylabel("BCE Loss")
         plt.title("Training Loss vs Iterations")
         plt.show()
+
+    def best_threshold(self, y_true, probs):
+        thresholds = np.linspace(0, 1, 200)
+        y_true = self.label_binarize(y_true)
+
+        best_f1 = 0
+        best_t = 0.5
+
+        for t in thresholds:
+            preds = (probs >= t).astype(int)
+            f1 = self.F1_score(y_true, preds)
+            if f1 > best_f1:
+                best_f1 = f1
+                best_t = t
+
+        return best_t, best_f1
+
+    def tuning_loop(X_train_log_norm, Y_train_log, learning_rates, iterations_list, l2_lambdas):
+        best_f1 = 0
+        best_auc = 0
+        best_model = None
+        best_loss = None
+        best_combined_score = 0  # Track combined score
+
+        for lr in learning_rates:
+            for iters in iterations_list:
+                for l2 in l2_lambdas:
+
+                    print(f"Training with lr={lr}, iter={iters}, l2={l2}")
+
+                    model = LogisticRegression()
+                    model.learning_rate = lr
+                    model.max_iter = iters
+                    model.l2_lambda = l2
+
+                    loss = model.fit(X_train_log_norm, Y_train_log)
+
+                    probs = model.predict_proba(X_train_log_norm)
+                    
+                    # preds = model.predict(X_train_log_norm)
+                    #---------------------------------------
+                    t, f1 = model.best_threshold(Y_train_log, probs)
+                    print("t: ", t)
+                    preds = (probs >= t).astype(int)
+                    #---------------------------------------
+                    # f1 = model.F1_score(Y_train_log, preds)
+
+                    auc = model.get_auroc(model.label_binarize(Y_train_log), probs)
+
+                    print("F1:", f1, "AUROC:", auc)
+
+                    # Use combined score to select best model
+                    combined_score = f1 + auc
+                    if combined_score >= best_combined_score:
+                        best_f1 = f1
+                        best_auc = auc
+                        best_model = model
+                        best_loss = loss
+                        best_combined_score = combined_score
+
+                    if f1 >= 0.90 and auc >= 0.90:
+                        return (best_f1, best_auc, best_model, best_loss)
+
+        return (best_f1, best_auc, best_model, best_loss)
+
+
 
 class ModelEvaluator:
     def __init__(self, n_splits: int = 5, random_state: int = 42):
@@ -586,6 +553,7 @@ class ModelEvaluator:
             List of metric scores
         """
         # TODO: Implement cross-validation
+        
 
 if __name__ == "__main__":
     
@@ -703,12 +671,23 @@ if __name__ == "__main__":
 
     log_model.plotLoss(losses)
 
+    # Make prediction using trained model.
     test_pred = log_model.predict(X_test_log_norm)
 
     np.savetxt("logistic_predictions_untuned.csv", test_pred, delimiter=",")
 
+    # Tune hyperparameters to achieve F1 score ≥ 0.90 and AUROC ≥ 0.90
+    learning_rates = [0.001, 0.01, 0.1]
+    iterations_list = [1000, 2000, 5000]
+    l2_lambdas = [0.0, 0.001, 0.01]
+    best_f1, best_auc, best_model, best_loss = LogisticRegression.tuning_loop(X_train_log_norm,Y_train_log, learning_rates, iterations_list, l2_lambdas)
 
-    
+    # Plot training loss for tuned trained model
+    best_model.plotLoss(best_loss)
+
+    # Make prediction using tuned trained model and store in a file
+    final_preds = best_model.predict(X_test_log_norm)
+    np.savetxt("logistic_predictions_tuned.csv", final_preds, delimiter=",")
 
 
 
