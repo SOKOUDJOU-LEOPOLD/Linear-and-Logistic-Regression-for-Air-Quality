@@ -715,15 +715,15 @@ if __name__ == "__main__":
     # 3.2 Exploratory Data Analysis
 
     # Plot the histograms of all the features in the data 
-    # ExploratoryDataAnalysis().plotHistograms(train_clean_data)
+    ExploratoryDataAnalysis().plotHistograms(train_clean_data)
     # get the mean, std, min, max for each features. Describing clean data
     print("Features Description:\n", train_clean_data.describe())
 
     # Picked T and AH and create a scatter plot to illustrate the correlation between them
-    # ExploratoryDataAnalysis().scatterPlot(test_clean_data, "T", "RH")
+    ExploratoryDataAnalysis().scatterPlot(test_clean_data, "T", "RH")
 
     # Compute the Pearson’s correlation between all pairs of variables 1-12
-    # ExploratoryDataAnalysis().plotCorrelationHeatmap(train_clean_data)
+    ExploratoryDataAnalysis().plotCorrelationHeatmap(train_clean_data)
 
     # 3.3 Linear Regression
 
@@ -734,32 +734,32 @@ if __name__ == "__main__":
 
     # Construct main training loop without tuning hyperparameters, record loss, plot loss against iteration 
     linear_model = LinearRegression()
-    # losses = linear_model.fit(X_train_norm, Y_train)
-    # linear_model.plotLoss(losses)
+    losses = linear_model.fit(X_train_norm, Y_train)
+    linear_model.plotLoss(losses)
 
     # Make prediction using trained model
-    # test_predictions = linear_model.predict(X_test_norm)
-    # print("\nUnTuned Test predictions shape:", test_predictions.shape)
+    test_predictions = linear_model.predict(X_test_norm)
+    print("\nUnTuned Test predictions shape:", test_predictions.shape)
 
     # save the predictions of the untuned trained model
-    # np.savetxt("linear_predictions_untuned.csv", test_predictions, delimiter=",")
+    np.savetxt("linear_predictions_untuned.csv", test_predictions, delimiter=",")
 
     # Tune Hyperparameters to achieve RMSE <= 71
     # define hyperparameters tuning candidates
     learning_rates = [0.001, 0.01]
     iterations_list = [1000, 2000]
-    # best_rmse, best_model, best_loss = LinearRegression.tuning_loop(learning_rates, iterations_list, X_train_norm, Y_train)
-    # print("Best Model: lr = ", best_model.learning_rate, ", iterations = ", best_model.max_iter)
+    best_rmse, best_model, best_loss = LinearRegression.tuning_loop(learning_rates, iterations_list, X_train_norm, Y_train)
+    print("Best Model: lr = ", best_model.learning_rate, ", iterations = ", best_model.max_iter)
 
     # Plot training loss for tuned trained model
-    # best_model.plotLoss(best_loss)
+    best_model.plotLoss(best_loss)
 
     # Make prediction using tuned trained model
-    # test_predictions_tuned = best_model.predict(X_test_norm)
-    # print("\nTuned Test predictions shape:", test_predictions_tuned.shape)
+    test_predictions_tuned = best_model.predict(X_test_norm)
+    print("\nTuned Test predictions shape:", test_predictions_tuned.shape)
 
     # save the predictions of the tuned trained model
-    # np.savetxt("linear_predictions_tuned.csv", test_predictions, delimiter=",")
+    np.savetxt("linear_predictions_tuned.csv", test_predictions, delimiter=",")
 
 
     # 3.4 Logistic Regression
@@ -789,7 +789,7 @@ if __name__ == "__main__":
 
     losses = log_model.fit(X_train_log_norm, Y_train_log)
 
-    # log_model.plotLoss(losses)
+    log_model.plotLoss(losses)
 
     # Make prediction using trained model.
     test_pred = log_model.predict(X_test_log_norm)
@@ -803,7 +803,7 @@ if __name__ == "__main__":
     best_f1, best_auc, best_model, best_loss = LogisticRegression.tuning_loop(X_train_log_norm,Y_train_log, learning_rates, iterations_list, l2_lambdas)
 
     # Plot training loss for tuned trained model
-    # best_model.plotLoss(best_loss)
+    best_model.plotLoss(best_loss)
 
     # Make prediction using tuned trained model and store in a file
     final_preds = best_model.predict(X_test_log_norm)
@@ -858,4 +858,3 @@ if __name__ == "__main__":
         Y_train_log
     )
     
-
