@@ -86,6 +86,7 @@ class DataProcessor:
         # feature matrix will be X and Label Vector will be Y
         X = data.drop(columns=["PT08.S1(CO)"])
         Y = data["PT08.S1(CO)"]
+
         return (X, Y)
     
     # Normalize Data
@@ -375,7 +376,7 @@ class LogisticRegression:
         self.weights = None
         self.bias = None
         self.learning_rate = 0.001
-        self.max_iter = 2000
+        self.max_iter = 1000
         self.l2_lambda = 0.0
 
     def sigmoid(self, z: np.ndarray) -> np.ndarray:
@@ -554,6 +555,13 @@ class LogisticRegression:
         y_true = self.label_binarize(y_true)
         return self.get_auroc(y_true, y_pred)
 
+    def plotLoss(self, losses:np.ndarray):
+        plt.plot(losses)
+        plt.xlabel("Iterations")
+        plt.ylabel("BCE Loss")
+        plt.title("Training Loss vs Iterations")
+        plt.show()
+
 class ModelEvaluator:
     def __init__(self, n_splits: int = 5, random_state: int = 42):
         """Initialize evaluator with number of CV splits.
@@ -667,7 +675,37 @@ if __name__ == "__main__":
 
 
     # 3.4 Logistic Regression
+    print("|                                                    |")
+    print("================= Logistic Regression ================")
+    X_train_log, Y_train_log = dataProcessor.extract_features_labels(train_clean_data)
+    X_test_log = test_clean_data
+    print("train data features and label: ")
+    print("features: \n", X_train_log)
+    print("label: \n", Y_train_log)
 
+    # test set has NO labels → only features
+    X_test_log = test_clean_data
+
+    # Normalize (fit only on train stats)
+    X_train_log_norm, X_test_log_norm = dataProcessor.normalize(
+        X_train_log, X_test_log
+    )
+
+    # convert pd.DataFrames to numpy.Array for math operations
+    X_train_log_norm = X_train_log_norm.values
+    Y_train_log = Y_train_log.values
+    X_test_log_norm = X_test_log_norm.values
+
+    # Construct main training loop, record loss, and plot the loss against iterations (Untuned model)
+    log_model = LogisticRegression()
+
+    losses = log_model.fit(X_train_log_norm, Y_train_log)
+
+    log_model.plotLoss(losses)
+
+    test_pred = log_model.predict(X_test_log_norm)
+
+    np.savetxt("logistic_predictions_untuned.csv", test_pred, delimiter=",")
 
 
     
