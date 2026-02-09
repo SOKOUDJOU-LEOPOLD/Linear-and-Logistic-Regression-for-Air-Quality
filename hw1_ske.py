@@ -238,7 +238,7 @@ class LinearRegression:
         # TODO: Implement RMSE calculation
         return np.sqrt(self.criterion(y_true, y_pred))
     
-    def tuning_loop(learning_rates, iterations_list):            
+    def tuning_loop(learning_rates, iterations_list, X_train_norm, Y_train ):            
         best_rmse = float("inf")
         best_model = None
         best_loss = None
@@ -553,7 +553,127 @@ class ModelEvaluator:
             List of metric scores
         """
         # TODO: Implement cross-validation
-        
+        # storage 
+        rmse_scores = []
+        f1_scores = []
+        auc_scores = []
+
+        for fold_idx, (train_idx, val_idx) in enumerate(self.kf.split(X)):
+            print(f"\nFold {fold_idx + 1}/{self.n_splits}")
+
+            X_train, X_val = X[train_idx], X[val_idx]
+            y_train, y_val = y[train_idx], y[val_idx]
+
+            # ----- fresh model per fold -----
+            fold_model = type(model)()
+            fold_model.learning_rate = model.learning_rate
+            fold_model.max_iter = model.max_iter
+            fold_model.l2_lambda = getattr(model, "l2_lambda", 0.0)
+
+            # ----- train -----
+            fold_model.fit(X_train, y_train)
+
+            # ===== LINEAR REGRESSION =====
+            if hasattr(fold_model, "predict") and not hasattr(fold_model, "predict_proba"):
+                preds = fold_model.predict(X_val)
+                rmse = np.sqrt(np.mean((y_val - preds) ** 2))
+                rmse_scores.append(rmse)
+                print("RMSE:", rmse)
+
+            # ===== LOGISTIC REGRESSION =====
+            else:
+                probs = fold_model.predict_proba(X_val)
+                y_bin = fold_model.label_binarize(y_val)
+
+                # --- threshold tuning for F1 ---
+                thresholds = np.linspace(0, 1, 200)
+                best_f1 = 0
+
+                for t in thresholds:
+                    preds = (probs >= t).astype(int)
+                    f1 = fold_model.F1_score(y_bin, preds)
+                    best_f1 = max(best_f1, f1)
+
+                auc = fold_model.get_auroc(y_bin, probs)
+
+                f1_scores.append(best_f1)
+                auc_scores.append(auc)
+
+                print("F1:", best_f1, "AUROC:", auc)
+
+        # ----- return results -----
+        if rmse_scores:
+            return rmse_scores
+        else:
+            return {
+                "F1": f1_scores,
+                "AUROC": auc_scores
+            }          
+
+    def plot_roc_cv(self, model_class, X: np.ndarray, y: np.ndarray):
+            """
+            Plot ROC curve for each fold in cross-validation
+            """
+            plt.figure(figsize=(8, 6))
+
+            aucs = []
+
+            for fold, (train_idx, val_idx) in enumerate(self.kf.split(X)):
+                print(f"Fold {fold + 1}")
+
+                # Split data
+                X_train, X_val = X[train_idx], X[val_idx]
+                y_train, y_val = y[train_idx], y[val_idx]
+
+                # Binarize labels
+                y_train_bin = (y_train > 1000).astype(int)
+                y_val_bin = (y_val > 1000).astype(int)
+
+                # Train model
+                model = model_class()
+                model.fit(X_train, y_train)
+
+                # Predict probabilities
+                probs = model.predict_proba(X_val)
+
+                # Compute ROC
+                thresholds = np.linspace(0, 1, 200)
+                tpr = []
+                fpr = []
+
+                for t in thresholds:
+                    preds = (probs >= t).astype(int)
+
+                    tp = np.sum((y_val_bin == 1) & (preds == 1))
+                    fp = np.sum((y_val_bin == 0) & (preds == 1))
+                    fn = np.sum((y_val_bin == 1) & (preds == 0))
+                    tn = np.sum((y_val_bin == 0) & (preds == 0))
+
+                    tpr.append(tp / (tp + fn + 1e-9))
+                    fpr.append(fp / (fp + tn + 1e-9))
+
+                # Compute AUC
+                order = np.argsort(fpr)
+                auc = np.trapezoid(np.array(tpr)[order], np.array(fpr)[order])
+                aucs.append(auc)
+
+                # Plot ROC curve
+                plt.plot(fpr, tpr, label=f"Fold {fold + 1} (AUC={auc:.3f})")
+
+            # Plot random classifier
+            plt.plot([0, 1], [0, 1], "k--", label="Random")
+
+            plt.xlabel("False Positive Rate")
+            plt.ylabel("True Positive Rate")
+            plt.title("ROC Curves Across 5 Folds (Logistic Regression)")
+            plt.legend()
+            plt.grid(True)
+            plt.show()
+
+            print("Mean AUC:", np.mean(aucs))
+            print("Std AUC:", np.std(aucs))
+
+
 
 if __name__ == "__main__":
     
@@ -628,7 +748,7 @@ if __name__ == "__main__":
     # define hyperparameters tuning candidates
     learning_rates = [0.001, 0.01]
     iterations_list = [1000, 2000]
-    # best_rmse, best_model, best_loss = LinearRegression.tuning_loop(learning_rates, iterations_list)
+    # best_rmse, best_model, best_loss = LinearRegression.tuning_loop(learning_rates, iterations_list, X_train_norm, Y_train)
     # print("Best Model: lr = ", best_model.learning_rate, ", iterations = ", best_model.max_iter)
 
     # Plot training loss for tuned trained model
@@ -669,7 +789,7 @@ if __name__ == "__main__":
 
     losses = log_model.fit(X_train_log_norm, Y_train_log)
 
-    log_model.plotLoss(losses)
+    # log_model.plotLoss(losses)
 
     # Make prediction using trained model.
     test_pred = log_model.predict(X_test_log_norm)
@@ -683,12 +803,59 @@ if __name__ == "__main__":
     best_f1, best_auc, best_model, best_loss = LogisticRegression.tuning_loop(X_train_log_norm,Y_train_log, learning_rates, iterations_list, l2_lambdas)
 
     # Plot training loss for tuned trained model
-    best_model.plotLoss(best_loss)
+    # best_model.plotLoss(best_loss)
 
     # Make prediction using tuned trained model and store in a file
     final_preds = best_model.predict(X_test_log_norm)
     np.savetxt("logistic_predictions_tuned.csv", final_preds, delimiter=",")
 
 
+    # 3.5 Result Analysis - Cross Validation
 
+    # Model Evaluator Linear Regression
+    model = LinearRegression()
+    model.learning_rate = 0.001
+    model.max_iter = 2000
+    
+    evaluator = ModelEvaluator(n_splits=5)
+
+    rmse_scores = evaluator.cross_validation(model,X_train_norm, Y_train)
+
+    print("\n===== Linear Regression CV Results =====")
+    print("RMSE per fold:", rmse_scores)
+    print("Mean RMSE:", np.mean(rmse_scores))
+    print("Std RMSE:", np.std(rmse_scores))
+
+
+    # Model Evaluator Logistic Regression
+    model = LogisticRegression()
+    model.learning_rate = 0.001
+    model.max_iter = 1000
+    model.l2_lambda = 0.0
+
+    evaluator = ModelEvaluator(n_splits=5)
+
+    results = evaluator.cross_validation(model, X_train_log_norm, Y_train_log)
+
+    f1s = results["F1"]
+    aucs = results["AUROC"]
+
+    print("\n===== Logistic Regression CV Results =====")
+    print("F1 per fold:", f1s)
+    print("AUROC per fold:", aucs)
+
+    print("\nMean F1:", np.mean(f1s))
+    print("Std F1:", np.std(f1s))
+    print("Mean AUROC:", np.mean(aucs))
+    print("Std AUROC:", np.std(aucs))
+
+    # 3.6 ROC Curve - Logistic Regression 
+    evaluator = ModelEvaluator(n_splits=5)
+
+    evaluator.plot_roc_cv(
+        LogisticRegression,
+        X_train_log_norm,
+        Y_train_log
+    )
+    
 
